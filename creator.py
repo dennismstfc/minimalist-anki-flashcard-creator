@@ -22,13 +22,16 @@ class FlashCardCreator:
             pages: list[PIL.Image.Image], 
             selected_pages: list[int],
             chapter: str = "default",
-            max_tokens: int = 1000
+            max_tokens: int = 1000,
+            deep_analysis: bool = False
             ):
         """
         Args:
             pages: list of PIL images
             selected_pages: list of indices of the pages to process
             chapter: name of the chapter (usually the file name without the .pdf extension)
+            max_tokens: int of the max tokens to use for the GPT-4o model
+            deep_analysis: bool of whether to perform a deep analysis of the page
         """
         # select the subset of pages to process
         self.pages = [pages[i] for i in selected_pages]
@@ -36,7 +39,7 @@ class FlashCardCreator:
         self.chapter = chapter
         self.max_tokens = max_tokens
 
-        analyzer = FileAnalyzer(self.pages)
+        analyzer = FileAnalyzer(self.pages, deep_analysis=deep_analysis)
         self.analysis = analyzer.analyze()
 
     def create_flashcards(self) -> list[FlashCardStruct]:

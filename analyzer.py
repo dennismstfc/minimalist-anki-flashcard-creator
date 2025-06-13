@@ -15,7 +15,12 @@ class FileAnalyzer:
     a simple model such as GPT-o will be used, otherwise GPT-4o will be used. OCR is performed
     to get the text in the file.
     """
-    def __init__(self, images: list[PIL.Image.Image], text_threshold: float = 0.75, deep_analysis: bool = False):
+    def __init__(
+            self, 
+            images: list[PIL.Image.Image], 
+            text_threshold: float = 0.75, 
+            deep_analysis: bool = False
+            ):
         """
         Args:
             images: list of PIL.Image.Image of the images to process
@@ -241,8 +246,8 @@ class FileAnalyzer:
                 graphics_ratio = 0
                 complexity_score = 0
             
-            # Determine model recommendation
-            use_gpt4o = text_ratio < self.text_threshold
+            # Determine model recommendation. TODO: tweak thresholds        
+            use_gpt4o = (text_ratio < self.text_threshold) or (complexity_score > 0.9)
             
             analysis_results[page_idx] = {
                 'use_gpt4o': use_gpt4o,
