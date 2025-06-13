@@ -1,3 +1,4 @@
+openai
 pillow
 pdf2image
 streamlit
