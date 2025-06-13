@@ -1,17 +1,16 @@
 import PIL
 import os
 import openai
+import re
+import streamlit as st
+import pandas as pd
+
+from structures import FlashCardStruct
 from few_shot_examples import few_shot_examples
 from utils import pil_to_base64
-import re
-from structures import FlashCardStruct
-from io import BytesIO
-import streamlit as st
-
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 
 class FlashCardCreator:
     """
@@ -107,7 +106,7 @@ class FlashCardCreator:
             return ""
 
 
-def flashcard_struct_to_anki_csv(
+def flashcard_struct_to_df(
         flashcards: list[FlashCardStruct], separator: str = ";") -> str:
     """
     Convert a list of FlashCardStruct to an Anki CSV string.
@@ -115,11 +114,9 @@ def flashcard_struct_to_anki_csv(
         flashcards: list of FlashCardStruct objects
         separator: separator for the Anki CSV string
     Returns:
-        str: Anki CSV string
+        pd.DataFrame: DataFrame with the flashcards
     """
     questions = [flashcard.question for flashcard in flashcards]
     answers = [flashcard.answer for flashcard in flashcards]
 
-    header = "Question,Answer"
-    rows = [f"{question}{separator}{answer}" for question, answer in zip(questions, answers)]
-    return "\n".join([header] + rows)
+    return pd.DataFrame({"Question": questions, "Answer": answers})

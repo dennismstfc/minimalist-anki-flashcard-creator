@@ -1,4 +1,5 @@
 openai
+pandas
 pillow
 pdf2image
 streamlit
