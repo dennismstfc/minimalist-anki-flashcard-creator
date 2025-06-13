@@ -1,24 +1,22 @@
 import streamlit as st
 from pdf_viewer import view_pdf
-import os
-from datetime import datetime
-
+from creator import FlashCardCreator
 
 def main():
     uploaded = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded:
-        # Save the uploaded file to data folder with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"data/upload_{timestamp}.pdf"
-        with open(filename, "wb") as f:
-            f.write(uploaded.getbuffer())
-        st.success(f"PDF saved to {filename}")
-        
         pages, selected = view_pdf(uploaded)
+        
+        # chapter = file name without the .pdf extension
+        chapter = uploaded.name.split(".")[0]
 
-        if st.button("Process selected pages") and selected:
-            st.write(f"Will process pages: {selected}")
+        if st.button("Create flashcards") and selected:
+            st.write(f"Will create flashcards for pages: {selected}")
+            creator = FlashCardCreator(pages, selected, chapter)
+            flashcards = creator.create_flashcards()
+            st.write(flashcards)
+
 
 if __name__ == "__main__":
     main()
