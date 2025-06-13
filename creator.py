@@ -21,7 +21,8 @@ class FlashCardCreator:
             self, 
             pages: list[PIL.Image.Image], 
             selected_pages: list[int],
-            chapter: str = "default"
+            chapter: str = "default",
+            max_tokens: int = 1000
             ):
         """
         Args:
@@ -33,6 +34,7 @@ class FlashCardCreator:
         self.pages = [pages[i] for i in selected_pages]
         self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         self.chapter = chapter
+        self.max_tokens = max_tokens
 
         analyzer = FileAnalyzer(self.pages)
         self.analysis = analyzer.analyze()
@@ -102,7 +104,7 @@ class FlashCardCreator:
             response = self.client.chat.completions.create(
                 model="gpt-4o",
                 messages=messages,
-                max_tokens=1000
+                max_tokens=self.max_tokens
             )
             
             # Return the raw response text which should contain <Question> and <Answer> tags
@@ -141,7 +143,7 @@ class FlashCardCreator:
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
-                max_tokens=1000
+                max_tokens=self.max_tokens
             )
             return response.choices[0].message.content
         except Exception as e:
