@@ -2,9 +2,6 @@ import PIL
 import pytesseract
 from typing import List
 import numpy as np
-from pdf2image import convert_from_path
-import cv2
-from PIL import ImageDraw, ImageFont
 
 
 class FileAnalyzer:
@@ -67,6 +64,8 @@ class FileAnalyzer:
             List[PIL.Image.Image]: A list of extracted graphics from the page 
         """
         # Convert PIL Image to OpenCV format
+        import cv2
+        
         cv_image = cv2.cvtColor(np.array(page), cv2.COLOR_RGB2BGR)
         
         # Convert to grayscale
