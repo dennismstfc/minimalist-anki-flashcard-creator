@@ -14,13 +14,21 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 class FlashCardCreator:
+    """
+    Create flashcards from a list of PIL images using GPT-4o.
+    """
     def __init__(
             self, 
             pages: list[PIL.Image.Image], 
             selected_pages: list[int],
             chapter: str = "default"
             ):
-        
+        """
+        Args:
+            pages: list of PIL images
+            selected_pages: list of indices of the pages to process
+            chapter: name of the chapter (usually the file name without the .pdf extension)
+        """
         # select the subset of pages to process
         self.pages = [pages[i] for i in selected_pages]
         self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
@@ -29,6 +37,9 @@ class FlashCardCreator:
     def create_flashcards(self) -> list[FlashCardStruct]:
         """
         Create flashcards for the selected pages.
+
+        Returns:
+            list of FlashCardStruct objects
         """
         flashcards = []
         questions = []
@@ -96,13 +107,19 @@ class FlashCardCreator:
             return ""
 
 
-def flashcard_struct_to_anki_csv(flashcards: list[FlashCardStruct]) -> str:
+def flashcard_struct_to_anki_csv(
+        flashcards: list[FlashCardStruct], separator: str = ";") -> str:
     """
     Convert a list of FlashCardStruct to an Anki CSV string.
+    Args:
+        flashcards: list of FlashCardStruct objects
+        separator: separator for the Anki CSV string
+    Returns:
+        str: Anki CSV string
     """
     questions = [flashcard.question for flashcard in flashcards]
     answers = [flashcard.answer for flashcard in flashcards]
 
     header = "Question,Answer"
-    rows = [f"{question},{answer}" for question, answer in zip(questions, answers)]
+    rows = [f"{question}{separator}{answer}" for question, answer in zip(questions, answers)]
     return "\n".join([header] + rows)
