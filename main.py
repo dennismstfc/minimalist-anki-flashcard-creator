@@ -5,6 +5,13 @@ from creator import FlashCardCreator, flashcard_struct_to_df
 
 
 def main():
+    st.set_page_config(
+        page_title="Minimalist Anki Flashcard Creator",
+        layout="wide",
+        page_icon="docs/favicon.png"
+    )
+    st.title("Minimalist Anki Flashcard Creator")
+
     uploaded = st.file_uploader("Upload a PDF file", type="pdf")
 
     if uploaded:
