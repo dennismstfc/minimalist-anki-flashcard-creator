@@ -1,5 +1,14 @@
 # Minimalist Anki Flashcard Creator
+
 A lightweight tool that helps you create Anki flashcards from PDF study materials. Using GPT-4o, it automatically extracts key information and generates well-structured flashcards, saving you time and effort in your study preparation.
+
+## Screenshots
+
+![Main Interface](docs/screenshots/main_interface.png)
+*The main interface showing PDF upload and page selection*
+
+![Flashcard Generation](docs/screenshots/flashcard_generation.png)
+*Generated flashcards ready for export*
 
 ## Features
 
