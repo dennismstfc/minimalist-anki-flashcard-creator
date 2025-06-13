@@ -1,18 +1,20 @@
 from utils import pil_to_base64, png_to_pil
 from pathlib import Path
 
-few_shot_examples = [
+system_prompt = """
+You are a flashcard creator. You will be given a page from a pdf slide deck.
+Instructions to create a flashcards:
+- Keep the flashcards simple, clear, and focused on the most important information.
+- Make sure the questions are specific and unambiguous.
+- Use simple and direct language to make the cards easy to read and understand.
+- Use for formulas the mathjax syntax, e.g. \(E=mc^2\) for inline formulas and \[E=mc^2\] for block formulas.
+- Produce flashcards in <question> and <answer> format.
+"""
+
+few_shot_examples_gpt4o = [
     {
         "role": "system",
-        "content": """
-        You are a flashcard creator. You will be given a page from a pdf slide deck.
-        Instructions to create a flashcards:
-        - Keep the flashcards simple, clear, and focused on the most important information.
-        - Make sure the questions are specific and unambiguous.
-        - Use simple and direct language to make the cards easy to read and understand.
-        - Use for formulas the mathjax syntax, e.g. \(E=mc^2\) for inline formulas and \[E=mc^2\] for block formulas.
-        - Produce flashcards in <question> and <answer> format.
-        """
+        "content": system_prompt
     },
     {
         "role": "user",
@@ -85,6 +87,69 @@ few_shot_examples = [
                 </Answer>
 
                 <Question> Describe the KNN algorithm for regression. </Question>
+                <Answer> 1. Calculate the distance between the query point and all points in the training set.
+                2. Sort the points by distance.
+                3. Select the top k points.
+                4. Take the average of the target values of the top k points.
+                </Answer>
+                """
+            }
+        ]
+    }
+]
+
+
+# Do the same as above, but with text 
+few_shot_examples_gpt3o = [
+    {
+        "role": "system",
+        "content": system_prompt
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": """
+                The goal of classification is to find a function \(f: \mathcal{R}^n \rightarrow 1, \ldots, K\) that maps an input to \(K\) categories.
+                The goal of regression is to find a function \(f: \mathcal{R}^n \rightarrow \mathcal{R}\) that maps an input to a real-valued output.
+                """
+            },
+            {
+                "type": "text",
+                "text": """
+                <Question> What is the goal of classification? </Question>
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow 1, \ldots, K\) that maps an input to  \(K\) categories. </Answer>
+
+                <Question> What is the goal of regression? </Question>
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow \mathcal{R}\) that maps an input to a real-valued output. </Answer>
+                """
+            }
+        ]
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": """
+                The algorithm can be summarised as:
+                Calculate the distance between the reference test sample and the training set.
+                Sort the training set based on the distance.
+                Pick the first k samples from the training set. – If regression, average the labels of the k samples. – If classification vote for each class and get the mode of the k labels.
+                """
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question> What is the KNN algorithm for classification? </Question>
+                <Answer> 1. Calculate the distance between the query point and all points in the training set.
+                2. Sort the points by distance.
+                3. Select the top k points.
+                4. Vote for the class label by majority.
+                </Answer>
+
+                <Question> What is the KNN algorithm for regression? </Question>
                 <Answer> 1. Calculate the distance between the query point and all points in the training set.
                 2. Sort the points by distance.
                 3. Select the top k points.
