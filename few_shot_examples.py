@@ -71,7 +71,7 @@ few_shot_examples = [
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_algorithms.png")))
+                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_algorithm.png")))
                 }
             },
             {
