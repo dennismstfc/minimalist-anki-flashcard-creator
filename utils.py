@@ -17,6 +17,8 @@ def pil_to_base64(
     """
 
     buffered = BytesIO()
+    # convert image to RGB
+    image = image.convert("RGB")
     image.save(buffered, format=format)
     img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
     return f"data:image/{format.lower()};base64,{img_str}"
