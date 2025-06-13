@@ -1,0 +1,95 @@
+from utils import pil_to_base64, png_to_pil
+from pathlib import Path
+
+few_shot_examples = [
+    {
+        "role": "system",
+        "content": """
+        You are a flashcard creator. You will be given a page from a pdf slide deck.
+        Instructions to create a flashcards:
+        - Keep the flashcards simple, clear, and focused on the most important information.
+        - Make sure the questions are specific and unambiguous.
+        - Use simple and direct language to make the cards easy to read and understand.
+        - Use for formulas the mathjax syntax, e.g. \(E=mc^2\) for inline formulas and \[E=mc^2\] for block formulas.
+        - Produce flashcards in <question> and <answer> format.
+        """
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Extract the formula from the image."
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_function.png")))
+                }
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question> Define the threshold function of the McCulloch-Pitts Neuron 
+                <Answer> \[f(x) = \begin{cases} 0, & \text{if } \mathbf{w}\mathbf{x} \le T \\ 1, & \text{otherwise} \end{cases}\], where \(x, w \in \mathcal{R}^n\) and \(T \in \mathcal{R}\).
+                """
+            }
+        ]
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Extract the concepts/goals from the image."
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_goals.png")))
+                }
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question> What is the goal of classification? 
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow 1, \ldots, K\) that maps an input to  \(K\) categories.
+
+                <Question> What is the goal of regression?
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow \mathcal{R}\) that maps an input to a real-valued output.
+                """
+            }
+        ]
+    },
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Extract the algorithms from the image and differentiate between the classification and regression types."
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_algorithms.png")))
+                }
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question> Describe the KNN algorithm for classification.
+                <Answer> 1. Calculate the distance between the query point and all points in the training set.
+                2. Sort the points by distance.
+                3. Select the top k points.
+                4. Vote for the class label by majority.
+
+                <Question> Describe the KNN algorithm for regression.
+                <Answer> 1. Calculate the distance between the query point and all points in the training set.
+                2. Sort the points by distance.
+                3. Select the top k points.
+                4. Take the average of the target values of the top k points.
+                """
+            }
+        ]
+    }
+]
