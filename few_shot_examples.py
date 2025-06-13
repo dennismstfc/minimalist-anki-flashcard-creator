@@ -30,8 +30,8 @@ few_shot_examples = [
             {
                 "type": "text",
                 "text": """The output should be: 
-                <Question> Define the threshold function of the McCulloch-Pitts Neuron 
-                <Answer> \[f(x) = \begin{cases} 0, & \text{if } \mathbf{w}\mathbf{x} \le T \\ 1, & \text{otherwise} \end{cases}\], where \(x, w \in \mathcal{R}^n\) and \(T \in \mathcal{R}\).
+                <Question> Define the threshold function of the McCulloch-Pitts Neuron </Question>
+                <Answer> \[f(x) = \begin{cases} 0, & \text{if } \mathbf{w}\mathbf{x} \le T \\ 1, & \text{otherwise} \end{cases}\], where \(x, w \in \mathcal{R}^n\) and \(T \in \mathcal{R}\). </Answer>
                 """
             }
         ]
@@ -52,11 +52,11 @@ few_shot_examples = [
             {
                 "type": "text",
                 "text": """The output should be: 
-                <Question> What is the goal of classification? 
-                <Answer> A function \(f: \mathcal{R}^n \rightarrow 1, \ldots, K\) that maps an input to  \(K\) categories.
+                <Question> What is the goal of classification? </Question>
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow 1, \ldots, K\) that maps an input to  \(K\) categories. </Answer>
 
-                <Question> What is the goal of regression?
-                <Answer> A function \(f: \mathcal{R}^n \rightarrow \mathcal{R}\) that maps an input to a real-valued output.
+                <Question> What is the goal of regression? </Question>
+                <Answer> A function \(f: \mathcal{R}^n \rightarrow \mathcal{R}\) that maps an input to a real-valued output. </Answer>
                 """
             }
         ]
@@ -77,17 +77,19 @@ few_shot_examples = [
             {
                 "type": "text",
                 "text": """The output should be: 
-                <Question> Describe the KNN algorithm for classification.
+                <Question> Describe the KNN algorithm for classification. </Question>
                 <Answer> 1. Calculate the distance between the query point and all points in the training set.
                 2. Sort the points by distance.
                 3. Select the top k points.
                 4. Vote for the class label by majority.
+                </Answer>
 
-                <Question> Describe the KNN algorithm for regression.
+                <Question> Describe the KNN algorithm for regression. </Question>
                 <Answer> 1. Calculate the distance between the query point and all points in the training set.
                 2. Sort the points by distance.
                 3. Select the top k points.
                 4. Take the average of the target values of the top k points.
+                </Answer>
                 """
             }
         ]
