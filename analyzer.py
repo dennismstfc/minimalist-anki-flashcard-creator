@@ -99,21 +99,153 @@ class FileAnalyzer:
             extracted_graphics[idx] = self.__extract_graphics_from_page(image)
 
         return extracted_graphics
+    
 
-    def analyze(self):
+    def __calulate_text_area(self, image: PIL.Image.Image) -> float:
         """
-        For testing purposes, print the text and graphics extracted from the first page.
+        Calculate the area of the text in the image using OCR bounding boxes.
+        """
+        try:
+            ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+
+            text_area = 0
+
+            for i, conf in enumerate(ocr_data['conf']):
+                if conf > 60:
+                    w = ocr_data['width'][i]
+                    h = ocr_data['height'][i]
+                    text_area += w * h
+
+            return text_area
+        except Exception:
+            # Fallback estimate of text area if OCR fails
+            return image.width * image.height
+    
+    def __calculate_complexity(self, text: str, graphics: List[PIL.Image.Image]) -> float:
+        """
+        Calculate the content complexity of the page.
+        """
+        complexity = 0.0
+
+        if text:
+            # 1. special character ratio
+            special_char_ratio = sum(1 for char in text if not char.isalnum()) / len(text) if text else 0
+
+            # 2. word length variance
+            words = text.split()
+            avg_word_length = sum(len(word) for word in words) / len(words) if words else 0
+            word_length_variance = sum((len(word) - avg_word_length) ** 2 for word in words) / len(words) if words else 0
+
+            # 3. Line density
+            line_count = text.count("\n")
+
+            complexity += min(0.4, special_char_ratio)
+            complexity += min(0.3, word_length_variance / 10)
+            complexity += min(0.3, line_count / 50)
+            
+        if graphics:
+            # 1. Number of graphics
+            complexity += min(0.3, len(graphics) / 10)
+
+            # 2. Size variance
+            
+            avg_size = sum(g.width*g.height for g in graphics)/len(graphics) if graphics else 0
+            size_var = sum((g.width*g.height-avg_size)**2 for g in graphics)/len(graphics) if graphics else 0
+            complexity += min(0.3, size_var / (avg_size + 1) * 0.1)
+    
+        return min(1.0, complexity) 
+
+    def __calculate_text_area(self, image: PIL.Image.Image) -> float:
+        """
+        Calculate the area of the text in the image using OCR bounding boxes.
+        """
+        try:
+            # Use Tesseract to get text bounding boxes
+            ocr_data = pytesseract.image_to_data(
+                image, 
+                output_type=pytesseract.Output.DICT
+            )
+            
+            text_area = 0
+            for i, conf in enumerate(ocr_data['conf']):
+                if int(conf) > 60:  # Only consider confident detections
+                    x = ocr_data['left'][i]
+                    y = ocr_data['top'][i]
+                    w = ocr_data['width'][i]
+                    h = ocr_data['height'][i]
+                    text_area += w * h
+            
+            return text_area
+        except Exception:
+            # Fallback estimation if OCR fails
+            return image.width * image.height * 0.2  # Conservative estimate
+
+    def analyze(self) -> dict[int, dict]:
+        """
+        Analyze each page to determine the optimal model selection with detailed metrics.
+        
+        Returns:
+            dict[int, dict]: A dictionary where keys are page indices and values are 
+            analysis dictionaries containing:
+            - use_gpt4o: bool (whether to use GPT-4o)
+            - text_ratio: float (percentage of text content)
+            - text_area: int (pixel area of text)
+            - graphics_area: int (pixel area of graphics)
+            - complexity_score: float (0-1 score of content complexity)
         """
         extracted_texts = self.__extract_text()
         extracted_graphics = self.__extract_graphics()
-
-        print(extracted_texts)
         
-        # plot the graphics
-        for idx, graphics in extracted_graphics.items():
-            for i, graphic in enumerate(graphics):
-                graphic.show()  
+        analysis_results = {}
         
+        for page_idx, image in enumerate(self.images):
+            # Calculate precise text area using OCR bounding boxes
+            text_area = self.__calculate_text_area(image)
+            text_length = len(extracted_texts[page_idx].strip())
+            
+            # Calculate graphics area
+            graphics_area = sum(
+                g.width * g.height 
+                for g in extracted_graphics.get(page_idx, [])
+            )
+            
+            # Calculate page dimensions
+            page_width, page_height = image.size
+            page_area = page_width * page_height
+            
+            # Calculate content ratios
+            content_area = text_area + graphics_area
+            if content_area > 0:
+                text_ratio = text_area / content_area
+                graphics_ratio = graphics_area / content_area
+            else:
+                text_ratio = 0
+                graphics_ratio = 0
+            
+            # Calculate complexity factors
+            complexity_score = self.__calculate_complexity(
+                extracted_texts[page_idx],
+                extracted_graphics.get(page_idx, [])
+            )
+            
+            # Determine model recommendation
+            use_gpt4o = (
+                (text_ratio < self.threshold) or  # More graphics than threshold
+                (complexity_score > 0.7) or      # Highly complex content
+                (graphics_ratio > 0.5 and len(extracted_graphics[page_idx]) > 3)  # Many graphics
+            )
+            
+            analysis_results[page_idx] = {
+                'use_gpt4o': use_gpt4o,
+                'text_ratio': text_ratio,
+                'text_area': text_area,
+                'graphics_area': graphics_area,
+                'complexity_score': complexity_score,
+                'page_dimensions': (page_width, page_height),
+                'graphics_count': len(extracted_graphics.get(page_idx, []))
+            }
+        
+        return analysis_results
 
 if __name__ == "__main__":
     images = convert_from_path("docs/test.pdf")
