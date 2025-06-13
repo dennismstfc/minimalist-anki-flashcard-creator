@@ -4,6 +4,7 @@ from typing import List
 import numpy as np
 from pdf2image import convert_from_path
 import cv2
+from PIL import ImageDraw, ImageFont
 
 
 class FileAnalyzer:
@@ -14,9 +15,18 @@ class FileAnalyzer:
     a simple model such as GPT-o will be used, otherwise GPT-4o will be used. OCR is performed
     to get the text in the file.
     """
-    def __init__(self, images: list[PIL.Image.Image], threshold: float = 0.8):
+    def __init__(self, images: list[PIL.Image.Image], text_threshold: float = 0.75, deep_analysis: bool = False):
+        """
+        Args:
+            images: list of PIL.Image.Image of the images to process
+            text_threshold: float of the threshold to use for the GPT-4o model. If above this
+            threshold, the text will be extracted and used to create flashcards.
+            deep_analysis: bool of whether to perform a deep analysis of the page. If false.
+            only the text ratio is calculated and the text is extracted.
+        """
         self.images = images
-        self.threshold = threshold
+        self.text_threshold = text_threshold
+        self.deep_analysis = deep_analysis # If false, only the text ratio is calculated
 
     def __extract_text(self) -> dict[int, str]:
         """
@@ -101,29 +111,16 @@ class FileAnalyzer:
         return extracted_graphics
     
 
-    def __calulate_text_area(self, image: PIL.Image.Image) -> float:
-        """
-        Calculate the area of the text in the image using OCR bounding boxes.
-        """
-        try:
-            ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
-
-            text_area = 0
-
-            for i, conf in enumerate(ocr_data['conf']):
-                if conf > 60:
-                    w = ocr_data['width'][i]
-                    h = ocr_data['height'][i]
-                    text_area += w * h
-
-            return text_area
-        except Exception:
-            # Fallback estimate of text area if OCR fails
-            return image.width * image.height
-    
     def __calculate_complexity(self, text: str, graphics: List[PIL.Image.Image]) -> float:
         """
         Calculate the content complexity of the page.
+
+        Args:
+            text: str of the text to process
+            graphics: list of PIL.Image.Image of the graphics to process
+
+        Returns:
+            float: The complexity score of the page
         """
         complexity = 0.0
 
@@ -158,6 +155,12 @@ class FileAnalyzer:
     def __calculate_text_area(self, image: PIL.Image.Image) -> float:
         """
         Calculate the area of the text in the image using OCR bounding boxes.
+
+        Args:
+            image: PIL.Image.Image of the image to process
+
+        Returns:
+            float: The area of the text in the image
         """
         try:
             # Use Tesseract to get text bounding boxes
@@ -169,8 +172,6 @@ class FileAnalyzer:
             text_area = 0
             for i, conf in enumerate(ocr_data['conf']):
                 if int(conf) > 60:  # Only consider confident detections
-                    x = ocr_data['left'][i]
-                    y = ocr_data['top'][i]
                     w = ocr_data['width'][i]
                     h = ocr_data['height'][i]
                     text_area += w * h
@@ -192,48 +193,56 @@ class FileAnalyzer:
             - text_area: int (pixel area of text)
             - graphics_area: int (pixel area of graphics)
             - complexity_score: float (0-1 score of content complexity)
+            - text: str (extracted text from the page)
         """
+        # Always extract text as it's needed for basic analysis
         extracted_texts = self.__extract_text()
-        extracted_graphics = self.__extract_graphics()
+        
+        # Only extract graphics if deep analysis is enabled
+        extracted_graphics = self.__extract_graphics() if self.deep_analysis else {}
         
         analysis_results = {}
         
         for page_idx, image in enumerate(self.images):
-            # Calculate precise text area using OCR bounding boxes
-            text_area = self.__calculate_text_area(image)
+            # Calculate text ratio (always needed)
             text_length = len(extracted_texts[page_idx].strip())
-            
-            # Calculate graphics area
-            graphics_area = sum(
-                g.width * g.height 
-                for g in extracted_graphics.get(page_idx, [])
-            )
-            
-            # Calculate page dimensions
             page_width, page_height = image.size
             page_area = page_width * page_height
             
-            # Calculate content ratios
-            content_area = text_area + graphics_area
-            if content_area > 0:
-                text_ratio = text_area / content_area
-                graphics_ratio = graphics_area / content_area
+            if self.deep_analysis:
+                # Calculate precise text area using OCR bounding boxes
+                text_area = self.__calculate_text_area(image)
+                
+                # Calculate graphics area
+                graphics_area = sum(
+                    g.width * g.height 
+                    for g in extracted_graphics.get(page_idx, [])
+                )
+                
+                # Calculate content ratios
+                content_area = text_area + graphics_area
+                if content_area > 0:
+                    text_ratio = text_area / content_area
+                    graphics_ratio = graphics_area / content_area
+                else:
+                    text_ratio = 0
+                    graphics_ratio = 0
+                
+                # Calculate complexity factors
+                complexity_score = self.__calculate_complexity(
+                    extracted_texts[page_idx],
+                    extracted_graphics.get(page_idx, [])
+                )
             else:
-                text_ratio = 0
+                # Simple text ratio calculation for basic analysis
+                text_area = text_length * 100  # Rough estimate of text area
+                graphics_area = 0
+                text_ratio = text_length / (page_width * page_height) if text_length > 0 else 0
                 graphics_ratio = 0
-            
-            # Calculate complexity factors
-            complexity_score = self.__calculate_complexity(
-                extracted_texts[page_idx],
-                extracted_graphics.get(page_idx, [])
-            )
+                complexity_score = 0
             
             # Determine model recommendation
-            use_gpt4o = (
-                (text_ratio < self.threshold) or  # More graphics than threshold
-                (complexity_score > 0.7) or      # Highly complex content
-                (graphics_ratio > 0.5 and len(extracted_graphics[page_idx]) > 3)  # Many graphics
-            )
+            use_gpt4o = text_ratio < self.text_threshold
             
             analysis_results[page_idx] = {
                 'use_gpt4o': use_gpt4o,
@@ -242,13 +251,8 @@ class FileAnalyzer:
                 'graphics_area': graphics_area,
                 'complexity_score': complexity_score,
                 'page_dimensions': (page_width, page_height),
-                'graphics_count': len(extracted_graphics.get(page_idx, []))
+                'graphics_count': len(extracted_graphics.get(page_idx, [])),
+                'text': extracted_texts[page_idx]
             }
         
         return analysis_results
-
-if __name__ == "__main__":
-    images = convert_from_path("docs/test.pdf")
-    analyzer = FileAnalyzer(images)
-    print(analyzer.analyze())
-
