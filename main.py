@@ -23,7 +23,7 @@ def main():
 
             st.download_button(
                 label="Download flashcards",
-                data=df.to_csv(index=False),
+                data=df.to_csv(index=False, sep=";"),
                 file_name=f"{chapter}.csv"
             )
 

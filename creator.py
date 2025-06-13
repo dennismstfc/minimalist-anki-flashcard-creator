@@ -107,12 +107,11 @@ class FlashCardCreator:
 
 
 def flashcard_struct_to_df(
-        flashcards: list[FlashCardStruct], separator: str = ";") -> str:
+        flashcards: list[FlashCardStruct]) -> pd.DataFrame:
     """
-    Convert a list of FlashCardStruct to an Anki CSV string.
+    Convert a list of FlashCardStruct to a DataFrame.
     Args:
         flashcards: list of FlashCardStruct objects
-        separator: separator for the Anki CSV string
     Returns:
         pd.DataFrame: DataFrame with the flashcards
     """
