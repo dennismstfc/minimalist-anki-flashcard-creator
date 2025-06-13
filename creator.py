@@ -94,3 +94,15 @@ class FlashCardCreator:
         except Exception as e:
             st.error(f"Error creating flashcards: {str(e)}")
             return ""
+
+
+def flashcard_struct_to_anki_csv(flashcards: list[FlashCardStruct]) -> str:
+    """
+    Convert a list of FlashCardStruct to an Anki CSV string.
+    """
+    questions = [flashcard.question for flashcard in flashcards]
+    answers = [flashcard.answer for flashcard in flashcards]
+
+    header = "Question,Answer"
+    rows = [f"{question},{answer}" for question, answer in zip(questions, answers)]
+    return "\n".join([header] + rows)
