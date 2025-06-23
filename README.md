@@ -19,8 +19,8 @@ A lightweight tool that helps you create Anki flashcards from PDF study material
 - **PDF Document Processing**: Upload and process PDF files to extract content
 - **AI-Powered Flashcard Generation**: Uses OpenAI's language model to create intelligent flashcards
 - **Exercise Flashcard Support**: Create flashcards from exercises with questions, solutions, and detailed solution steps
-- **Smart Model Selection**: Automatically chooses between GPT-4o and GPT-3.5-turbo based on content complexity
-- **Deep Analysis Mode**: Optional detailed analysis of graphics and text complexity for better results
+- **Cost-Efficient Mode**: Automatically chooses between GPT-3.5-turbo and GPT-4o based on content complexity to optimize costs
+- **Smart Model Selection**: When cost-efficient mode is enabled, analyzes content to choose the most appropriate model
 - **Page Selection**: Choose specific pages from your PDF to generate flashcards
 - **Structured Output**: Generates flashcards in a format compatible with Anki
 - **Easy Export**: Download flashcards as CSV files for direct import into Anki
@@ -84,10 +84,11 @@ streamlit run main.py
    - **Regular Flashcards**: Standard Q&A format for general study material
    - **Exercise Flashcards**: For documents containing exercises with questions and solutions (automatically generates solution steps if not provided)
 
-6. **Optional: Enable Deep Analysis**:
-   - Performs detailed analysis of graphics and text complexity
+6. **Optional: Enable Cost Efficient Mode**:
+   - Automatically chooses between GPT-3.5-turbo and GPT-4o based on content complexity
+   - Uses GPT-3.5-turbo for simple text content (cheaper)
+   - Uses GPT-4o for complex content with graphics (better quality)
    - Automatically disabled when exercise mode is selected
-   - Takes longer to process but may provide better results for complex documents
 
 7. Click "Create flashcards" to generate the flashcards
 
