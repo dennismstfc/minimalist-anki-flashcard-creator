@@ -34,7 +34,7 @@ A lightweight tool that helps you create Anki flashcards from PDF study material
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/anki_flashcard_creator.git
+git clone https://github.com/dennismstfc/minimalist-anki-flashcard-creator.git
 cd anki_flashcard_creator
 ```
 
