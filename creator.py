@@ -23,7 +23,7 @@ class FlashCardCreator:
             selected_pages: list[int],
             chapter: str = "default",
             max_tokens: int = 1000,
-            deep_analysis: bool = False,
+            cost_efficient: bool = False,
             exercise_flashcards: bool = False
             ):
         """
@@ -32,7 +32,7 @@ class FlashCardCreator:
             selected_pages: list of indices of the pages to process
             chapter: name of the chapter (usually the file name without the .pdf extension)
             max_tokens: int of the max tokens to use for the GPT-4o model
-            deep_analysis: bool of whether to perform a deep analysis of the page
+            cost_efficient: bool of whether to perform cost-efficient model selection
             exercise_flashcards: bool of whether to create exercise flashcards
         """
         # select the subset of pages to process
@@ -41,8 +41,13 @@ class FlashCardCreator:
         self.chapter = chapter
         self.max_tokens = max_tokens
         self.exercise_flashcards = exercise_flashcards
-        analyzer = FileAnalyzer(self.pages, deep_analysis=deep_analysis)
-        self.analysis = analyzer.analyze()
+        
+        # Only perform analysis if cost_efficient is enabled
+        if cost_efficient:
+            analyzer = FileAnalyzer(self.pages, deep_analysis=False)
+            self.analysis = analyzer.analyze()
+        else:
+            self.analysis = None
 
     def create_flashcards(self) -> list[FlashCardStruct]:
         """
@@ -59,10 +64,17 @@ class FlashCardCreator:
             if self.exercise_flashcards:
                 response = self.create_exercise_flashcards_gpt4o(page)
             else:
-                if self.analysis[idx]['use_gpt4o']:
+                # If cost_efficient is enabled, use analysis to choose model
+                if self.analysis and self.analysis[idx]['use_gpt4o']:
                     response = self.create_flashcards_for_page_gpt4o(page)
                 else:
-                    response = self.create_flashcards_for_page_gpt3o(self.analysis[idx]['text'])
+                    # Use GPT-3.5-turbo by default or when analysis suggests it
+                    if self.analysis:
+                        response = self.create_flashcards_for_page_gpt3o(self.analysis[idx]['text'])
+                    else:
+                        # No analysis available, use GPT-4o for better results
+                        response = self.create_flashcards_for_page_gpt4o(page)
+            
             # The response can contain multiple flashcards, so we need to split them
             # since they are separated by <Question> and <Answer> tags
 

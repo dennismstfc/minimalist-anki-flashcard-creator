@@ -26,18 +26,18 @@ def main():
             help="Check this if the document contains exercises with questions and solutions. This will create exercise-specific flashcards."
         )
 
-        # Add deep analysis option with explanation
-        deep_analysis = st.checkbox(
-            "Enable deep analysis",
-            help="Performs detailed analysis of graphics and text complexity. This will take longer but may provide better results for complex documents.",
+        # Add cost efficient option with explanation
+        cost_efficient = st.checkbox(
+            "Cost efficient",
+            help="Automatically chooses between GPT-3.5-turbo and GPT-4o based on content complexity to optimize costs.",
             disabled=exercise_flashcards
         )
         
-        if deep_analysis and not exercise_flashcards:
-            st.info("⚠️ Deep analysis is enabled. This will take longer to process but may provide better results for complex documents with graphics.")
+        if cost_efficient and not exercise_flashcards:
+            st.info("💰 Cost efficient mode is enabled. The system will automatically choose the most cost-effective model based on content complexity.")
         
         if exercise_flashcards:
-            st.info("ℹ️ Exercise mode is enabled. Deep analysis is automatically disabled for exercise documents.")
+            st.info("ℹ️ Exercise mode is enabled. Cost efficient mode is automatically disabled for exercise documents.")
 
         if st.button("Create flashcards") and selected:
             flashcard_type = "exercise" if exercise_flashcards else "regular"
@@ -45,7 +45,7 @@ def main():
             
             # Show processing message
             with st.spinner("Analyzing document..."):
-                creator = FlashCardCreator(pages, selected, chapter, deep_analysis=deep_analysis, exercise_flashcards=exercise_flashcards)
+                creator = FlashCardCreator(pages, selected, chapter, cost_efficient=cost_efficient, exercise_flashcards=exercise_flashcards)
                 flashcards = creator.create_flashcards()
 
             df = flashcard_struct_to_df(flashcards)
