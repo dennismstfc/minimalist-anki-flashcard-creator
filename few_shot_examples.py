@@ -229,42 +229,98 @@ few_shot_examples_gpt3o = [
     }
 ]
 
+
+exercise_system_prompt = """
+You are a flashcard creator. You will receive a set of exercises and must output exactly one or more <Question>…</Question><Answer>…</Answer> pairs.
+Instructions to create a flashcards:
+1. Always wrap each Q/A pair in uppercase XML tags: `<Question>…</Question><Answer>…</Answer>`.
+2. For any formula, use MathJax: inline `\\(…\\)`, block `\\[…\\)`.
+3. Output each Q/A pair on its own line, with no extra indentation.
+4. If no detailed solution is given, include a brief solution outline.
+5. If no answer at all is provided, create a brief answer based on the question.
+6. Always include the whole context of the question in the <Question> tag.
+"""
+
 # This is for GPT-4o
 few_shot_examples_exercises = [
-     {
+    {
          "role": "system",
-         "content": system_prompt
-     }
-    ,
+         "content": exercise_system_prompt
+    },
     {
         "role": "user",
         "content": [
             {
                 "type": "text",
-                "text": "Create flashcards for all of these exercises. If no detailed solution is given, include a brief solution outline."
+                "text": "Create flashcards for all of these exercises. Here is no detailed solution is given, include a brief solution outline."
             },
             {
                 "type": "image_url",
                 "image_url": {
                     "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_exercise.png")))
                 }
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question>What does it mean for a binary relation \\(R\\) on a set \\(A\\) to be transitive?</Question>
+                <Answer>A relation \\(R\\) is transitive if for all \\(x,y,z \\in A\\), whenever \\((xRy)\\) and \\((yRz)\\), then also \\((xRz)\\).</Answer>
+
+                <Question>Is the relation \\((\\mathbb{R}, <)\\) transitive?</Question>
+                <Answer>Yes. If \\(x<y\\) and \\(y<z\\), then \\(x<z\\) by the properties of the real numbers.</Answer>
+
+                <Question>Is \\((\\mathbb{R}, \\le)\\) transitive?</Question>
+                <Answer>Yes. If \\(x\\le y\\) and \\(y\\le z\\), then \\(x\\le z\\).</Answer>
+
+                <Question>Is the relation “divides” \\((M = \\{1,2,3,4,5\\}, R = \\{(3,1),(1,5),(2,2),(2,5),(3,5)\\})\\) transitive?</Question>
+                <Answer>Yes. For every \\((aRb)\\) and \\((bRc)\\) in the set, the pair \\((a,c)\\) also appears. Check each chain: from 3→1 and 1→5 gives 3→5 (present); 2→2 and 2→5 gives 2→5 (present) </Answer>
+            """
             }
         ]
     },
     {
         "role": "user",
-        "content": """
-            <Question>What does it mean for a binary relation \\(R\\) on a set \\(A\\) to be transitive?</Question>
-            <Answer>A relation \\(R\\) is transitive if for all \\(x,y,z \\in A\\), whenever \\((xRy)\\) and \\((yRz)\\), then also \\((xRz)\\).</Answer>
+        "content": [
+            {
+                "type": "text",
+                "text": "Create flashcards for all of these exercises. Here is no solution given, so create a brief solution outline."
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": pil_to_base64(png_to_pil(Path("few_shot_data", "example_exercise_no_sol.png")))
+                }
+            },
+            {
+                "type": "text",
+                "text": """The output should be: 
+                <Question>Imagine you design a robot whose task is to find its way through a maze. You decide to give it a reward of
+                +1 for escaping the maze and a reward of zero at all other times. Additionally, you decide that a discount
+                factor of 1.0 should suffice. The task seems to break down into episodes - the successive runs through the
+                maze - so you decide to treat it as an episodic task, where the goal is to maximize expected total reward.
+                After running the learning agent for a while, you find that the agent is taking a very long time to solve
+                the maze, i.e., he is dawdling.
 
-            <Question>Is the relation \\((\\mathbb{R}, <)\\) transitive?</Question>
-            <Answer>Yes. If \\(x<y\\) and \\(y<z\\), then \\(x<z\\) by the properties of the real numbers.</Answer>
+                What is going wrong?
+                </Question>
+                <Answer>
+                The agent is taking a very long time to solve the maze, i.e., he is dawdling.
+                </Answer>
 
-            <Question>Is \\((\\mathbb{R}, \\le)\\) transitive?</Question>
-            <Answer>Yes. If \\(x\\le y\\) and \\(y\\le z\\), then \\(x\\le z\\).</Answer>
-
-            <Question>Is the relation “divides” \\((M = \\{1,2,3,4,5\\}, R = \\{(3,1),(1,5),(2,2),(2,5),(3,5)\\})\\) transitive?</Question>
-            <Answer>Yes. For every \\((aRb)\\) and \\((bRc)\\) in the set, the pair \\((a,c)\\) also appears. Check each chain: from 3→1 and 1→5 gives 3→5 (present); 2→2 and 2→5 gives 2→5 (present) </Answer>
-        """
+                <Question>Imagine you design a robot whose task is to find its way through a maze. You decide to give it a reward of
+                +1 for escaping the maze and a reward of zero at all other times. Additionally, you decide that a discount
+                factor of 1.0 should suffice. The task seems to break down into episodes - the successive runs through the
+                maze - so you decide to treat it as an episodic task, where the goal is to maximize expected total reward.
+                After running the learning agent for a while, you find that the agent is taking a very long time to solve
+                the maze, i.e., he is dawdling.
+                
+                How can we modify the above MDP to alleviate this problem?
+                </Question>
+                <Answer>
+                We can modify the above MDP to alleviate this problem by changing the reward function to give a reward of +1 for escaping the maze and a reward of zero at all other times.
+                </Answer>
+                """
+            }
+        ]
     }
- ]
+]
