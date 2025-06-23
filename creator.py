@@ -15,14 +15,14 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 class FlashCardCreator:
     """
-    Create flashcards from a list of PIL images using GPT-4o.
+    Create flashcards from a list of PIL images using GPT-4o or GPT-3.5-turbo.
     """
     def __init__(
             self, 
             pages: list[PIL.Image.Image], 
             selected_pages: list[int],
             chapter: str = "default",
-            max_tokens: int = 1000,
+            max_tokens: int = 3000,
             cost_efficient: bool = False,
             exercise_flashcards: bool = False
             ):
@@ -77,7 +77,6 @@ class FlashCardCreator:
             
             # The response can contain multiple flashcards, so we need to split them
             # since they are separated by <Question> and <Answer> tags
-
             questions.extend(re.findall(r'<Question>(.*?)</Question>', response))
             answers.extend(re.findall(r'<Answer>(.*?)</Answer>', response))
         
