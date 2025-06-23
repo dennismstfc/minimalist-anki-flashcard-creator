@@ -7,7 +7,7 @@ import pandas as pd
 
 from analyzer import FileAnalyzer
 from structures import FlashCardStruct
-from few_shot_examples import few_shot_examples_gpt4o, few_shot_examples_gpt3o
+from few_shot_examples import few_shot_examples_gpt4o, few_shot_examples_gpt3o, few_shot_examples_exercises
 from utils import pil_to_base64
 
 
@@ -23,7 +23,8 @@ class FlashCardCreator:
             selected_pages: list[int],
             chapter: str = "default",
             max_tokens: int = 1000,
-            deep_analysis: bool = False
+            deep_analysis: bool = False,
+            exercise_flashcards: bool = False
             ):
         """
         Args:
@@ -32,13 +33,14 @@ class FlashCardCreator:
             chapter: name of the chapter (usually the file name without the .pdf extension)
             max_tokens: int of the max tokens to use for the GPT-4o model
             deep_analysis: bool of whether to perform a deep analysis of the page
+            exercise_flashcards: bool of whether to create exercise flashcards
         """
         # select the subset of pages to process
         self.pages = [pages[i] for i in selected_pages]
         self.client = openai.OpenAI(api_key=OPENAI_API_KEY)
         self.chapter = chapter
         self.max_tokens = max_tokens
-
+        self.exercise_flashcards = exercise_flashcards
         analyzer = FileAnalyzer(self.pages, deep_analysis=deep_analysis)
         self.analysis = analyzer.analyze()
 
@@ -54,10 +56,13 @@ class FlashCardCreator:
         answers = []
 
         for idx, page in enumerate(self.pages):
-            if self.analysis[idx]['use_gpt4o']:
-                response = self.create_flashcards_for_page_gpt4o(page)
+            if self.exercise_flashcards:
+                response = self.create_exercise_flashcards_gpt4o(page)
             else:
-                response = self.create_flashcards_for_page_gpt3o(self.analysis[idx]['text'])
+                if self.analysis[idx]['use_gpt4o']:
+                    response = self.create_flashcards_for_page_gpt4o(page)
+                else:
+                    response = self.create_flashcards_for_page_gpt3o(self.analysis[idx]['text'])
             # The response can contain multiple flashcards, so we need to split them
             # since they are separated by <Question> and <Answer> tags
 
@@ -153,6 +158,39 @@ class FlashCardCreator:
             st.error(f"Error creating flashcards: {str(e)}")
             return ""
 
+    def create_exercise_flashcards_gpt4o(self, page: PIL.Image.Image):
+        """
+        Create exercise flashcards for a single page.
+        """
+        img_str = pil_to_base64(page)
+
+        messages = few_shot_examples_exercises.copy()
+        messages.append({
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Create exercise flashcards from these pages following the same format as the examples."
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": img_str
+                    }
+                }
+            ]
+        })
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                max_tokens=self.max_tokens
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            st.error(f"Error creating exercise flashcards: {str(e)}")
+            return ""
 
 def flashcard_struct_to_df(
         flashcards: list[FlashCardStruct]) -> pd.DataFrame:
