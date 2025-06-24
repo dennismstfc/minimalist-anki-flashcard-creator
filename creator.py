@@ -77,8 +77,9 @@ class FlashCardCreator:
             
             # The response can contain multiple flashcards, so we need to split them
             # since they are separated by <Question> and <Answer> tags
-            questions.extend(re.findall(r'<Question>(.*?)</Question>', response))
-            answers.extend(re.findall(r'<Answer>(.*?)</Answer>', response))
+
+            questions.extend(re.findall(r'<Question>(.*?)</Question>', response, re.DOTALL))
+            answers.extend(re.findall(r'<Answer>(.*?)</Answer>', response, re.DOTALL))
         
         for idx, (question, answer) in enumerate(zip(questions, answers)):
             flashcards.append(FlashCardStruct(question, answer, idx, self.chapter))
